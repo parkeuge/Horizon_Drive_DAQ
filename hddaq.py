@@ -16,11 +16,11 @@ analog_output = [1,2]
 digital_i_o = [1,2,3,4,5,6,7,8]
 results_chart = ["Q Factor","Thrust","Thrust/P"]
 counter = 0
-r0 = 0
-r1 = 0
-r2 = 0
-r3 = 0
-r4 = 3
+r0 = 5
+r1 = 5
+r2 = 5
+r3 = 5
+r4 = 8
 
 
 def start_test_warning():
@@ -199,7 +199,7 @@ class menubar(Frame):
         gray3_btn = Button(toolbar, text ="gray50", relief=RAISED,bitmap="gray50").grid(row=0,column=8)
         gray4_btn = Button(toolbar, text ="gray75", relief=RAISED,bitmap="gray75").grid(row=0,column=9)
         
-        toolbar.grid(row=1,column=0)
+        toolbar.grid(row=1,column=0,sticky=W)
 
     
 def counter_label(label):
@@ -219,29 +219,39 @@ if __name__ == "__main__":
     root = Tk() # Create a new GUI window
     root.title('Horizon Drive DAQ GUI')
     root.configure(background = 'light blue') # Set the background color of GUI window
-    root.geometry("1600x900") # Set the configuration of GUI window
+    root.geometry("1237x880") # Set the configuration of GUI window
     
     app = menubar()
     
     headlabel = Label(root,text="Horizon Drive",fg='black',font=('futura',24,'italic'))
     tabControl = ttk.Notebook(root)
-
+    
     test_run_buttons = PanedWindow(orient='vertical')
-    test_run_buttons.grid(row=4,column=3)
+    test_run_buttons.grid(row=2,column=2,sticky=W+E+N+S)
     test_start_button = Button(root,text="START",bg="green",fg="black")
     test_start_button.bind("<Button>", lambda e: start_test_warning())
-    test_run_buttons.add(test_start_button)
     test_pause_button = Button(root,text="STOP TEST",bg="red",fg="black")
-    test_run_buttons.add(test_pause_button)
-#    test_start_button.grid(row=6,column=3)
-#    test_pause_button.grid(row=7,column=3)
+    camera_feed_button = Button(root,text="VIEW CAMERA FEED")
+    graph_btn = Button(root,text="FILTERS")
+    graph_btn.bind("<Button>",lambda e: NewWindow(root).graph_settings())
+
+    results_pane = Label(text="Results\n Q Factor:\n Thrust:\n Thrust/Power:\n",relief=RIDGE)
+    active_sensor_pane = Label(text="Active Sensors:\nThermocouple\n Current Sensor\n Vacuum Pressure\n Magnetic Field\n Laser\n",relief=RIDGE)
     
     pw = PanedWindow(orient='horizontal')
-    pw.grid(row=2,column=3)
+    pw.grid(row=3,column=3)
     left = Label(text="Set test cycle length:")
     pw.add(left)
-    cycle_length = Spinbox(from_=0,to=5,justify=CENTER)
+    cycle_length = Spinbox(from_=0,to=5)
     pw.add(cycle_length)
+    
+    test_run_buttons.add(active_sensor_pane)
+    test_run_buttons.add(pw)
+    test_run_buttons.add(test_start_button)
+    test_run_buttons.add(test_pause_button)
+    test_run_buttons.add(graph_btn)
+    test_run_buttons.add(camera_feed_button)
+    
     
     tab1 = ttk.Frame(tabControl)
     tab2 = ttk.Frame(tabControl)
@@ -252,14 +262,14 @@ if __name__ == "__main__":
     tabControl.add(tab3,text="MCC 152 ANALOG OUTPUT / DIGITAL I/O")
 
     for channels in analog_voltage_input:
-        ttk.Label(tab1,text=channels,relief=RIDGE).grid(row=r1,column=0)
-        ttk.Label(tab1,text=channels,).grid(row=r1,column=1)
+        #ttk.Label(tab1,text=channels,relief=RIDGE).grid(row=r1,column=0,sticky=W+E+N+S)
+        ttk.Label(tab1,text=channels,).grid(row=r1,column=1,sticky=W+E+N+S)
         avi_btn = ttk.Button(tab1,text=channels,)
-        avi_btn.grid(row=r1,column=2)
+        avi_btn.grid(row=r1,column=2,sticky=W+E+N+S)
         avi_btn.bind("<Button>",lambda e: NewWindow(root))
-        ttk.Entry(tab1,text=channels).grid(row=r1,column=3)
+        ttk.Entry(tab1,text=channels).grid(row=r1,column=3,sticky=W+E+N+S)
         r1+=1
-    Button(tab1,text="Get Shield Info").grid(row=r1,column=4)
+    Button(tab1,text="Get Shield Info").grid(row=4,column=0)
     
     for channels in thermocouple_input:
         ttk.Label(tab2,text=channels,relief=RIDGE).grid(row=r2,column=0)
@@ -269,7 +279,7 @@ if __name__ == "__main__":
         thermo_btn.bind("<Button>",lambda e: NewWindow(root))
         ttk.Label(tab2,text=channels).grid(row=r2,column=3)
         r2+=1
-    Button(tab2,text="Get Shield Info").grid(row=r2,column=4)
+    Button(tab2,text="Get Shield Info").grid(row=4,column=0)
         
     for channels in analog_output:
         ttk.Label(tab3,text=channels,relief=RIDGE).grid(row=r3,column=0)
@@ -290,33 +300,37 @@ if __name__ == "__main__":
         dio_btn.bind("<Button>",lambda e: NewWindow(root))
         ttk.Label(tab3,text=channels).grid(row=r4,column=3)
         r4+=1
-    Button(tab3,text="Get Shield Info").grid(row=r4,column=4)
+    Button(tab3,text="Get Shield Info").grid(row=4,column=0)
         
-    Label(text="Results\n Q Factor:\n Thrust:\n Thrust/Power:\n",relief=RIDGE).grid(row=4,column=2,sticky=W+E+N+S)
-    active_sensor_pane = Label(text="Active Sensors\n Thermocouple\n Current Sensor\n Vacuum Pressure\n Magnetic Field\n Laser\n",relief=RIDGE).grid(row=3,column=3,sticky=W+E+N+S)
-    #pw2 = PanedWindow(orient='vertical')
-    #pw2.grid(row=2,column=3)
-    #pw2.add(pw)
-    #pw2.add(active_sensor_pane)
-    noise_btn = Button(text="External Disturbance Input\n (Click after a test cycle is conducted if needed.)")
+
+
+    noise_btn = Button(text="External Disturbance Input\n\n (Click after a test cycle is conducted if needed.)")
     noise_btn.bind("<Button>",lambda e: NoiseWindow(root))
     test_run_buttons.add(noise_btn)
+    test_run_buttons.add(results_pane)
     
     # grid method is used for placing widgets at their respective positions
-    headlabel.grid(row=0,column=1,sticky=W+E+N+S,columnspan=2)
-    tabControl.grid(row=2,column=0,columnspan=2,rowspan=2,sticky=W+E+N+S)
-#    Label(text="Set test cycle length:").grid(row=5,column=2)
-#    cycle_length = Spinbox(from_=0,to=5,justify=CENTER).grid(row=5,column=3)
-    
+    headlabel.grid(row=0,column=0,sticky=W+E+N+S,columnspan=3)
+    tabControl.grid(row=2,column=0,columnspan=2,sticky=W+E+N+S)
+
     uN_mA_graph = Figure(figsize=(4,4),dpi=100)
     nm_uN_graph = Figure(figsize=(4,4),dpi=100)
     nm_W_graph = Figure(figsize=(4,4),dpi=100)
-    em_force_as_function = uN_mA_graph.add_subplot(111)
-    em_force_variations = nm_uN_graph.add_subplot(111)
-    displacement_from_power = nm_W_graph.add_subplot(111)
+    em_force_as_function = uN_mA_graph.add_subplot(111,xlabel="Current (mA)",ylabel="Force (µN)")
+    em_force_variations = nm_uN_graph.add_subplot(111,xlabel="Force (µN)",ylabel="Displacement (nm)")
+    displacement_from_power = nm_W_graph.add_subplot(111,xlabel="Power (W)",ylabel="Displacement (nm)")
     em_force_as_function.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
     em_force_variations.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
     displacement_from_power.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
+    uN_mA_graph.suptitle("Force Produced from Current")
+    #uN_mA_graph.xlabel("Current (mA)")
+    #uN_mA_graph.ylabel("Force (µN)")
+    nm_uN_graph.suptitle("Displacement with Varied Magnet Distances")
+    #nm_uN_graph.xlabel("Force (µN)")
+    #nm_uN_graph.ylabel("Displacement (nm)")
+    nm_W_graph.suptitle("Displacement from Power")
+    #nm_W_graph.xlabel("Power (W)")
+    #nm_W_graph.ylabel("Displacement (nm)")
     
     canvas1 = FigureCanvasTkAgg(uN_mA_graph,root)
     canvas2 = FigureCanvasTkAgg(nm_uN_graph,root)
@@ -324,12 +338,9 @@ if __name__ == "__main__":
     canvas1.draw()
     canvas2.draw()
     canvas3.draw()
-    canvas1.get_tk_widget().grid(row=2,column=2,sticky=W+E+N+S)
-    canvas2.get_tk_widget().grid(row=4,column=0,sticky=W+E+N+S)
-    canvas3.get_tk_widget().grid(row=4,column=1,sticky=W+E+N+S)
-    graph_btn = Button(text="Filters")
-    graph_btn #.grid(row=3,column=2)
-    graph_btn.bind("<Button>",lambda e: NewWindow(root).graph_settings())
+    canvas1.get_tk_widget().grid(row=3,column=1,sticky=W+E+N+S)
+    canvas2.get_tk_widget().grid(row=3,column=0,sticky=W+E+N+S)
+    canvas3.get_tk_widget().grid(row=3,column=2,sticky=W+E+N+S)
 
     
     root.mainloop()
