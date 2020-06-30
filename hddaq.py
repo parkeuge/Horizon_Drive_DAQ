@@ -160,6 +160,10 @@ class NewWindow(Toplevel):
         daq_settings_tab.add(device_info, text="Device Info")
         daq_settings_tab.add(general_settings, text="Settings")
         
+    def camera_window(self):
+        self.title("Camera")
+        self.geomerty("350x350")
+        
 class menubar(Frame):
     def __init__(self):
         super().__init__()
@@ -266,6 +270,7 @@ if __name__ == "__main__":
     test_start_button.bind("<Button>", lambda e: start_test_warning())
     test_pause_button = Button(root,text="STOP TEST",height=2,highlightcolor='red2',relief=RAISED,background='red',activebackground='yellow')
     camera_feed_button = Button(root,text="VIEW CAMERA FEED",relief=GROOVE)
+    camera_feed_button.bind("<Button>",lambda e: NewWindow(root).camera_window())
     graph_btn = Button(root,text="GRAPH FILTERS",relief=RIDGE)
     graph_btn.bind("<Button>",lambda e: NewWindow(root).graph_settings())
     
