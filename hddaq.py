@@ -1,13 +1,16 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import colorchooser
-#from tkinter import filedialog
 from tkinter.filedialog import askopenfile
+from tkinter.filedialog import asksaveasfile
 from tkinter import ttk
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.animation as animation
+from matplotlib import style
+style.use('ggplot')
 
 AVI_DEVICES = ('Device 1', 'Device 2', 'Device 3')
 THERMAL_DEVICES = ('Device 1', 'Device 2', 'Device 3')
@@ -25,6 +28,20 @@ r2 = 5
 r3 = 5
 r4 = 8
 
+def run_test():
+    import time
+    progress['maximum'] = 100
+    for i in range (101):
+        time.sleep(0.05)
+        progress['value'] = i
+        progress.update()
+
+    messagebox.showinfo("Test Status", "Test Completed Successfully")
+    progress['value'] = 0
+    
+def stop_test():
+    import time
+    progress.stop()
 
 def start_test_warning():
     messagebox.showwarning("WARNING","You are about to start a test cycle. Before continuing please make sure the following items are completed: \n1. Safety glasses\n2.Something\n3.Something")
@@ -42,7 +59,10 @@ def onInfo():
     messagebox.showinfo("Information","Download completed")
     
 def onCancel():
-    messagebox.askokcancel("Cancel", "Ok")
+    ok = messagebox.askokcancel(message="You are about to start a test cycle. Before continuing please make sure the following items are completed: \n1. Safety glasses\n2.Something\n3.Something")
+    
+    if ok:
+        run_test()
     
 def onYesNo():
     messagebox.askyesno("Yes","No")
@@ -84,15 +104,38 @@ def get_152_info():
     #firmware_virsion_152 = mcc152.firmware_version()
     #serial_152 = mcc152.serial()
 
+def counter_label(label):
+    def count():
+        global counter
+        counter += 1
+        label.config(text=str(counter))
+        label.after(1000,count)
+    count()
 
-
+def save():
+    files = [('All Files', '*.*'),('Python Files', '*.py'),('Text Document','*.txt'),('CSV Files','*.csv')]
+    file = asksaveasfile(filetypes = files,defaultextension = files)
+    
+    
+def animate(i):
+    pullData = open('sampleText.txt','r').read()
+    dataArray = pullData.split('\n')
+    xar = []
+    yar = []
+    for eachLine in dataArray:
+        if len(eachLine) > 1:
+            x,y = eachLine.split(',')
+            xar.append(int(x))
+            yar.append(int(y))
+    displacement_from_power.clear()
+    displacement_from_power.plot(xar,yar)
         
 class NoiseWindow(Toplevel):
     def __init__(self,parent=None,side=LEFT):
         super().__init__()
         self.title("External Noise Input Menu")
-        self.geometry("350x300")
-        self.configure(background = "green" )
+        self.geometry("500x300")
+        #self.configure(background = "green" )
         Label(self, text ="Check any factor that may have contributed to noise:").grid(row=0,sticky=W+E)
         chkbtn1 = Checkbutton(self, text = "No external noise").grid(row=2,sticky=W)
         chkbtn2 = Checkbutton(self, text = "Air Currents (Atmospheric Test)").grid(row=3,sticky=W)
@@ -104,7 +147,11 @@ class NoiseWindow(Toplevel):
         chkbtn8 = Checkbutton(self, text = "Outgassing").grid(row=9,sticky=W)
         chkbtn9 = Checkbutton(self, text = "Photon Rocket Force").grid(row=10,sticky=W)
         chkbtn10 = Checkbutton(self, text = "Impulsive/Thermal Signal Decoupling Error").grid(row=11,sticky=W)
- 
+        confirm_button = Button(self,text = "Confirm").grid(row=14,column=1)
+        cancel_button = Button(self,text = "Cancel")
+        cancel_button.grid(row=14,column=0)
+        cancel_button.bind("<Button>",lambda e: self.destroy())
+        
 class colorpicker(Toplevel):
     def __init__(self,master=None):
         super().__init__(master=master)
@@ -128,7 +175,7 @@ class NewWindow(Toplevel):
         
     def graph_settings(self):
         self.title("Graph settings")
-        self.geometry("400x400")
+        self.geometry("500x310")
         graph_settings_tab = ttk.Notebook(self)
         
         general_settings = ttk.Frame(graph_settings_tab)
@@ -148,6 +195,10 @@ class NewWindow(Toplevel):
         chkbtn8 = Checkbutton(filters, text = "Outgassing").grid(row=9,sticky=W)
         chkbtn9 = Checkbutton(filters, text = "Photon Rocket Force").grid(row=10,sticky=W)
         chkbtn10 = Checkbutton(filters, text = "Impulsive/Thermal Signal Decoupling Error").grid(row=11,sticky=W)
+        confirm_button = Button(self,text = "Confirm").grid(row=14,column=1)
+        cancel_button = Button(self,text = "Cancel")
+        cancel_button.grid(row=14,column=0)
+        cancel_button.bind("<Button>",lambda e: self.destroy())
         
     def daq_settings(self):
         self.title("Program Settings")
@@ -162,7 +213,7 @@ class NewWindow(Toplevel):
         
     def camera_window(self):
         self.title("Camera")
-        self.geomerty("350x350")
+        self.geometry("350x350")
         
 class menubar(Frame):
     def __init__(self):
@@ -181,7 +232,7 @@ class menubar(Frame):
         menu.add_cascade(label="File",menu=file)
         file.add_command(label="New File",command=None)
         file.add_command(label="Open...",command=onOpen)
-        file.add_command(label="Save",command=None)
+        file.add_command(label="Save",command=save)
         file.add_separator()
         file.add_command(label="Exit",command=None)
         
@@ -241,16 +292,6 @@ class menubar(Frame):
         toolbar.grid(row=1,column=0,sticky=W)
 
     
-def counter_label(label):
-    def count():
-        global counter
-        counter += 1
-        label.config(text=str(counter))
-        label.after(1000,count)
-    count()
-    
-def status_update():
-    info_tuple = mcc118.info() # Return information about the shield as a named tuple
     
 # driver code
 if __name__ == "__main__":
@@ -261,14 +302,17 @@ if __name__ == "__main__":
     
     app = menubar()
     
-    headlabel = Label(root,text="Horizon Drive",fg='black',font=('futura',24,'italic'))
+    #headlabel = Label(root,text="Horizon Drive",fg='black',font=('futura',24,'italic'))
     tabControl = ttk.Notebook(root)
+    progress = ttk.Progressbar(root,orient=HORIZONTAL,length=300,mode='determinate')
+    progress.grid(row=1,column=2,sticky=W+E+N+S)
     
     test_run_buttons = PanedWindow(orient='vertical')
     test_run_buttons.grid(row=2,column=2,sticky=W+E+N+S)
     test_start_button = Button(root,text="START",height=2,highlightcolor='light green',relief=RAISED,background='green',activebackground='red')
-    test_start_button.bind("<Button>", lambda e: start_test_warning())
+    test_start_button.bind("<Button>", lambda e: onCancel())
     test_pause_button = Button(root,text="STOP TEST",height=2,highlightcolor='red2',relief=RAISED,background='red',activebackground='yellow')
+    test_pause_button.bind("<Button>", lambda e: stop_test())
     camera_feed_button = Button(root,text="VIEW CAMERA FEED",relief=GROOVE)
     camera_feed_button.bind("<Button>",lambda e: NewWindow(root).camera_window())
     graph_btn = Button(root,text="GRAPH FILTERS",relief=RIDGE)
@@ -300,9 +344,9 @@ if __name__ == "__main__":
     tabControl.add(tab2,text="MCC 134 THERMOCOUPLE INPUT")
     tabControl.add(tab3,text="MCC 152 ANALOG OUTPUT / DIGITAL I/O")
     
-    count_label = Label(root)
-    count_label.grid(row=1,column=1)
-    counter_label(count_label)
+    #count_label = Label(root)
+    #count_label.grid(row=1,column=1)
+    #counter_label(count_label)
     
     a = StringVar()
     b = StringVar()
@@ -407,7 +451,7 @@ if __name__ == "__main__":
     test_run_buttons.add(results_pane)
     
     # grid method is used for placing widgets at their respective positions
-    headlabel.grid(row=0,column=0,sticky=W+E+N+S,columnspan=3)
+    #headlabel.grid(row=0,column=0,sticky=W+E+N+S,columnspan=3)
     tabControl.grid(row=2,column=0,columnspan=2,sticky=W+E+N+S)
 
     uN_mA_graph = Figure(figsize=(4,4),dpi=100)
@@ -419,15 +463,11 @@ if __name__ == "__main__":
     em_force_as_function.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
     em_force_variations.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
     displacement_from_power.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5]) # most likely scenario would be to open a file to the csv text of the displacement data
+    #dfp_plot = animation.FuncAnimation(nm_W_graph,animate,interval=1000)
     uN_mA_graph.suptitle("Force Produced from Current")
-    #uN_mA_graph.xlabel("Current (mA)")
-    #uN_mA_graph.ylabel("Force (µN)")
     nm_uN_graph.suptitle("Displacement with Varied Magnet Distances")
-    #nm_uN_graph.xlabel("Force (µN)")
-    #nm_uN_graph.ylabel("Displacement (nm)")
     nm_W_graph.suptitle("Displacement from Power")
-    #nm_W_graph.xlabel("Power (W)")
-    #nm_W_graph.ylabel("Displacement (nm)")
+
     
     canvas1 = FigureCanvasTkAgg(uN_mA_graph,root)
     canvas2 = FigureCanvasTkAgg(nm_uN_graph,root)
@@ -435,9 +475,9 @@ if __name__ == "__main__":
     canvas1.draw()
     canvas2.draw()
     canvas3.draw()
-    canvas1.get_tk_widget().grid(row=3,column=1,sticky=W+E+N+S)
-    canvas2.get_tk_widget().grid(row=3,column=0,sticky=W+E+N+S)
-    canvas3.get_tk_widget().grid(row=3,column=2,sticky=W+E+N+S)
+    canvas1.get_tk_widget().grid(row=3,column=1)
+    canvas2.get_tk_widget().grid(row=3,column=0)
+    canvas3.get_tk_widget().grid(row=3,column=2)
 
     
     root.mainloop()
