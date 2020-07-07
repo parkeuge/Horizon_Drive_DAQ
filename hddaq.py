@@ -43,6 +43,8 @@ def stop_test():
     import time
     progress.stop()
 
+
+
 def start_test_warning():
     messagebox.showwarning("WARNING","You are about to start a test cycle. Before continuing please make sure the following items are completed: \n1. Safety glasses\n2.Something\n3.Something")
             
